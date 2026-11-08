@@ -1,4 +1,5 @@
 mod data_structure;
+mod persistence;
 
 use data_structure::KeyValStore;
 fn main() {

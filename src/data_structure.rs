@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use thiserror::Error;
-
+use crate::persistence::wal;
 pub struct KeyValStore {
     store: HashMap<String, String>
 }
@@ -8,13 +8,19 @@ pub struct KeyValStore {
 #[derive(Error, Debug)]
 
 pub enum KeyValStoreError {
-    #[error("the {key} was alareayd int the store")]
+    #[error("the {key} was already int the store")]
     KeyAlreadyInStore { key: String },
 
     #[error("the {key} was not found")]
     KeyNotFoundError { key: String }
 
 }
+
+// pub enum FileError {
+//     #[error("File operation failed: {0}")]
+//     Io(#[from] std::io::Error),
+// }
+
 impl KeyValStore {
     pub fn new() -> KeyValStore {
         KeyValStore { store: HashMap::new() }
