@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use thiserror::Error;
 use crate::persistence::wal;
+use crate::persistence::wal::{write_entry_to_wal, WalOperation};
+
 pub struct KeyValStore {
     store: HashMap<String, String>
 }
@@ -12,14 +14,13 @@ pub enum KeyValStoreError {
     KeyAlreadyInStore { key: String },
 
     #[error("the {key} was not found")]
-    KeyNotFoundError { key: String }
+    KeyNotFoundError { key: String },
+
+    #[error("Write to file failed for some reason")]
+    Io(#[from] std::io::Error),
+
 
 }
-
-// pub enum FileError {
-//     #[error("File operation failed: {0}")]
-//     Io(#[from] std::io::Error),
-// }
 
 impl KeyValStore {
     pub fn new() -> KeyValStore {
@@ -30,7 +31,10 @@ impl KeyValStore {
         if let Some(_stored_key) = self.store.get(&key) {
             Err(KeyValStoreError::KeyAlreadyInStore { key })
         } else {
+            let key_copy = key.clone();
+            let val_copy = val.clone();
             self.store.insert(key, val);
+            write_entry_to_wal(WalOperation::INSERT, key_copy.as_str(), val_copy.as_str())?;
             Ok(())
         }
     }

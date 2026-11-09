@@ -44,14 +44,13 @@ enum FileOpError {
     FileWriteError { path: String }
 }
 
-pub fn write_entry_to_wal(path: &str,
-                          op: WalOperation,
+pub fn write_entry_to_wal(op: WalOperation,
                           key: &str,
                           val: &str)  -> Result<(), Error>{
     let mut file = OpenOptions::new()
         .append(true)
         .create(true)
-        .open(path)?;
+        .open(WAL_PATH_STR)?;
 
     let op_string = op.to_string();
     writeln!(file, "{op_string} {key} {val}")?;
