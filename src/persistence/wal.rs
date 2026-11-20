@@ -18,6 +18,18 @@ use thiserror::Error;
 
 const WAL_PATH_STR: &str = "../WAL.txt";
 
+pub struct Entry<'a> {
+    op: WalOperation,
+    key: &'a str,
+    val: &'a str
+}
+
+impl<'a> Entry<'a> {
+    pub fn new(op: WalOperation, key: &'a str, val: &'a str) -> Self {
+        Self { op, key, val }
+    }
+}
+
 pub enum WalOperation {
     INSERT,
     UPDATE,
@@ -44,16 +56,15 @@ enum FileOpError {
     FileWriteError { path: String }
 }
 
-pub fn write_entry_to_wal(op: WalOperation,
-                          key: &str,
-                          val: &str)  -> Result<(), Error>{
+pub fn write_entry_to_wal(entry: Entry<'_>) -> Result<(), Error> {
     let mut file = OpenOptions::new()
         .append(true)
         .create(true)
         .open(WAL_PATH_STR)?;
 
+    let Entry { op, key, val } = entry;
     let op_string = op.to_string();
-    writeln!(file, "{op_string} {key} {val}")?;
+    writeln!(file, "{op_string}, KEY:= {key}, VAL:= {val}")?;
     file.sync_data()?; // immediately write to file
     Ok(())
 

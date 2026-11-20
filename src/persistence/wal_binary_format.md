@@ -12,7 +12,20 @@ Byte ranges are zero-based and exclude the right endpoint. `N` is the payload le
 | `2..2+N` | Payload | Operation, key, and optional value as described below |
 | `2+N..6+N` | Checksum | Little-endian `u32`, using CRC-32/ISO-HDLC over the stored length bytes followed by the payload |
 
-The payload starts with a one-byte operation code (`0x01` for insert, `0x02` for update, `0x03` for delete), followed by a little-endian `u16` key length and that many UTF-8 key bytes. For insert and update, the remaining payload bytes are the UTF-8 value. For delete, the payload ends immediately after the key. Lengths count bytes. The writer rejects payloads larger than 65,535 bytes before appending.
+The writer rejects payloads larger than 65,535 bytes before appending.
+
+## Payload
+
+Byte ranges are relative to the start of the payload and exclude the right endpoint. `X` is the key length in bytes.
+
+| Byte range | Field | Encoding |
+| --- | --- | --- |
+| `0..1` | Operation | `0x01` for insert, `0x02` for delete, `0x03` for update |
+| `1..3` | Key length | Little-endian `u16`, counting only the key bytes |
+| `3..3+X` | Key | `X` UTF-8 bytes |
+| `3+X..N` | Value | Remaining `N - 3 - X` UTF-8 bytes for insert or update |
+
+The reader checks that the payload contains at least three bytes and that `X` is at most `N - 3` before reading the key. For delete, `N` must equal `3 + X`. For insert and update, zero remaining bytes represent an empty value.
 
 ## Writing and recovery
 

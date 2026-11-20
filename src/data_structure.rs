@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use thiserror::Error;
-use crate::persistence::wal;
-use crate::persistence::wal::{write_entry_to_wal, WalOperation};
+use crate::persistence::wal::{write_entry_to_wal, Entry, WalOperation};
 
 pub struct KeyValStore {
     store: HashMap<String, String>
@@ -31,10 +30,9 @@ impl KeyValStore {
         if let Some(_stored_key) = self.store.get(&key) {
             Err(KeyValStoreError::KeyAlreadyInStore { key })
         } else {
-            let key_copy = key.clone();
-            let val_copy = val.clone();
+            let entry = Entry::new(WalOperation::INSERT, &key, &val);
+            write_entry_to_wal(entry)?;
             self.store.insert(key, val);
-            write_entry_to_wal(WalOperation::INSERT, key_copy.as_str(), val_copy.as_str())?;
             Ok(())
         }
     }
