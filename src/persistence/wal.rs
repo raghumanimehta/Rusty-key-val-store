@@ -19,9 +19,9 @@ use thiserror::Error;
 const WAL_PATH_STR: &str = "../WAL.txt";
 
 pub struct Entry<'a> {
-    op: WalOperation,
-    key: &'a str,
-    val: &'a str
+    pub(crate) op: WalOperation,
+    pub(crate) key: &'a str,
+    pub(crate) val: &'a str
 }
 
 impl<'a> Entry<'a> {
